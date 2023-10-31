@@ -119,7 +119,6 @@ combined_primary <- combined_primary %>%
 Next, separately write code to show each county and precinct and calculate the total votes in the Governor's race - bearing in mind that each precinct will have multiple rows in the dataframe, but you only want to see one row for each precinct. (So you'll want to use grouping and summarizing.)
 
 ```{r}
-
 print(names(combined_primary))
 print(names(precinct_voting_locations))
 
@@ -127,20 +126,25 @@ print(names(precinct_voting_locations))
 # If the votes for the Governor's race are spread across multiple columns or need to be filtered, adjust the code accordingly.
 
 county_precinct_totals <- combined_primary %>%
-  group_by(county_name, election_district_precinct) %>%
-  summarize(total_governors_race_votes = sum(early_votes + election_night_votes + mail_in_ballot_1_votes + mail_in_ballot_2_votes, na.rm = TRUE), .groups = 'drop')
+  group_by(county, county_name, election_district_precinct) %>%
+  summarize(total_governors_race_votes = sum(early_votes + election_night_votes + mail_in_ballot_1_votes + mail_in_ballot_2_votes, na.rm = TRUE))
+```
 
+
+```{r}
 # View the results
 print(county_precinct_totals)
 
 # Step 3: Sort to find the precinct with the highest number of votes
 top_precinct <- county_precinct_totals %>%
   arrange(desc(county_precinct_totals)) %>%
-  slice(1)
+  head(1)
 
 # Step 4: Join with the precinct voting location data
-top_precinct_location <- left_join(top_precinct, precinct_voting_locations, by = c( "county" = "county_code", 
-                                            "election_district_precinct" = "precinct_code"))
+top_precinct_location <- left_join(top_precinct, 
+                                   precinct_voting_locations, 
+                                   by = c("county" = "county_code", 
+                                          "election_district_precinct" = "precinct_code"))
 
 # Step 5: Select the relevant columns to get the name and location
 top_precinct_details <- top_precinct_location %>%
